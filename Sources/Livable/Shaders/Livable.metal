@@ -125,7 +125,6 @@ static float2 livableFoldField(float2 uv, float time) {
 
 static float2 livableDisplacementPoints(
     float2 uv,
-    float2 viewSize,
     float time,
     float intensity
 ) {
@@ -370,7 +369,6 @@ static float3 livableCompositeColor(
     );
     backgroundUV += livableDisplacementPoints(
         uv,
-        viewSize,
         time * 0.58 + 6.3,
         clampedIntensity * 0.32
     ) / viewSize;
@@ -405,7 +403,6 @@ static float3 livableCompositeColor(
 
     float2 displacementPoints = livableDisplacementPoints(
         uv,
-        viewSize,
         time,
         clampedIntensity
     );
@@ -454,7 +451,6 @@ static float3 livableCompositeColor(
     );
     overlayUV += livableDisplacementPoints(
         uv,
-        viewSize,
         time * 0.91 + 4.5,
         clampedIntensity * 0.76
     ) / viewSize;
