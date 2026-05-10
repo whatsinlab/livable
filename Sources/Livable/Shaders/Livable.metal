@@ -125,7 +125,6 @@ static float2 livableFoldField(float2 uv, float time) {
 
 static float2 livableDisplacementPoints(
     float2 uv,
-    float2 viewSize,
     float time,
     float intensity
 ) {
@@ -312,9 +311,6 @@ static LivableBaseTransformResult livableBaseTransform(float2 uv, float time, fl
 
 /// Samples the source layer at the displaced center UV.
 ///
-/// This is the primary animated color sample. Additional color movement comes
-/// from the red and blue chromatic offset samples in the stitchable entry point.
-///
 /// - Parameters:
 ///   - layer: SwiftUI source layer to sample from.
 ///   - uv: Displaced sample center in normalized UV space.
@@ -346,6 +342,12 @@ static float3 livableCompositeColor(
 
     float clampedIntensity = 1.0;
     float aspect = viewSize.x / max(viewSize.y, 1.0);
+    float2 displacementPoints = livableDisplacementPoints(
+        uv,
+        time,
+        clampedIntensity
+    );
+    float2 displacementUV = displacementPoints / viewSize;
 
     LivableBaseTransformResult backgroundTransform = livableSurfaceTransform(
         uv,
@@ -371,12 +373,7 @@ static float3 livableCompositeColor(
         clampedIntensity * 0.42,
         aspect
     );
-    backgroundUV += livableDisplacementPoints(
-        uv,
-        viewSize,
-        time * 0.58 + 6.3,
-        clampedIntensity * 0.32
-    ) / viewSize;
+    backgroundUV += displacementUV * 0.32;
 
     float backgroundAlpha = 1.0;
     float3 backgroundColor = sampleLayerUnpremultiplied(
@@ -406,19 +403,7 @@ static float3 livableCompositeColor(
         aspect
     );
 
-    float2 displacementPoints = livableDisplacementPoints(
-        uv,
-        viewSize,
-        time,
-        clampedIntensity
-    );
-    float2 displacementUV = displacementPoints / viewSize;
     float2 displacedUV = warpedUV + displacementUV;
-
-    float displacementMagnitude = length(displacementUV);
-    float2 flowDirection = displacementMagnitude > 0.00001
-        ? displacementUV / displacementMagnitude
-        : normalize(float2(0.74, -0.52));
 
     float primaryAlpha = 1.0;
     float3 primaryColor = livableCenterSample(
@@ -429,30 +414,6 @@ static float3 livableCompositeColor(
         primaryAlpha
     );
     primaryAlpha *= min(baseTransform.alpha, livableFootprintAlpha(displacedUV));
-
-    float chromaticOffsetUV = mix(0.0, 0.6, clampedIntensity);
-    float2 chromaticStep = flowDirection * (chromaticOffsetUV / max(viewSize.x, 1.0));
-    float redAlpha = 1.0;
-    float blueAlpha = 1.0;
-    float3 redSample = sampleLayerUnpremultiplied(
-        layer,
-        displacedUV + chromaticStep,
-        viewOrigin,
-        viewSize,
-        redAlpha
-    );
-    float3 blueSample = sampleLayerUnpremultiplied(
-        layer,
-        displacedUV - chromaticStep,
-        viewOrigin,
-        viewSize,
-        blueAlpha
-    );
-    primaryColor = float3(
-        mix(primaryColor.r, redSample.r, 0.18 * clampedIntensity),
-        primaryColor.g,
-        mix(primaryColor.b, blueSample.b, 0.18 * clampedIntensity)
-    );
 
     float2 primaryCenterOffset = livableOffset(time * 0.18, clampedIntensity);
     float2 overlayOrbitOffset = livableOverlayOrbitOffset(
@@ -484,12 +445,7 @@ static float3 livableCompositeColor(
         clampedIntensity * 0.72,
         aspect
     );
-    overlayUV += livableDisplacementPoints(
-        uv,
-        viewSize,
-        time * 0.91 + 4.5,
-        clampedIntensity * 0.76
-    ) / viewSize;
+    overlayUV += rotate2D(displacementUV, 0.42) * 0.76;
 
     float overlayAlpha = 1.0;
     float3 overlayColor = livableCenterSample(
