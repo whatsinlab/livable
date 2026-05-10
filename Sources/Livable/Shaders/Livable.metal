@@ -342,6 +342,12 @@ static float3 livableCompositeColor(
 
     float clampedIntensity = 1.0;
     float aspect = viewSize.x / max(viewSize.y, 1.0);
+    float2 displacementPoints = livableDisplacementPoints(
+        uv,
+        time,
+        clampedIntensity
+    );
+    float2 displacementUV = displacementPoints / viewSize;
 
     LivableBaseTransformResult backgroundTransform = livableSurfaceTransform(
         uv,
@@ -367,11 +373,7 @@ static float3 livableCompositeColor(
         clampedIntensity * 0.42,
         aspect
     );
-    backgroundUV += livableDisplacementPoints(
-        uv,
-        time * 0.58 + 6.3,
-        clampedIntensity * 0.32
-    ) / viewSize;
+    backgroundUV += displacementUV * 0.32;
 
     float backgroundAlpha = 1.0;
     float3 backgroundColor = sampleLayerUnpremultiplied(
@@ -401,12 +403,6 @@ static float3 livableCompositeColor(
         aspect
     );
 
-    float2 displacementPoints = livableDisplacementPoints(
-        uv,
-        time,
-        clampedIntensity
-    );
-    float2 displacementUV = displacementPoints / viewSize;
     float2 displacedUV = warpedUV + displacementUV;
 
     float primaryAlpha = 1.0;
@@ -449,11 +445,7 @@ static float3 livableCompositeColor(
         clampedIntensity * 0.72,
         aspect
     );
-    overlayUV += livableDisplacementPoints(
-        uv,
-        time * 0.91 + 4.5,
-        clampedIntensity * 0.76
-    ) / viewSize;
+    overlayUV += rotate2D(displacementUV, 0.42) * 0.76;
 
     float overlayAlpha = 1.0;
     float3 overlayColor = livableCenterSample(
