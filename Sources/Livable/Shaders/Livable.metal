@@ -16,7 +16,7 @@ constant float kTau = 6.28318530718;
 constant float kGoldenFract = 0.6180339887498949;
 constant float kPlasticAlpha1 = 0.7548776662466927;
 constant float kPlasticAlpha2 = 0.5698402909980532;
-constant int kUniformFloatCount = 21;
+constant int kUniformFloatCount = 23;
 
 // MARK: - Low-discrepancy generators
 
@@ -368,9 +368,11 @@ static float3 livableCompositeColor(
         float2(uniforms[11], uniforms[12]),
         float2(uniforms[17], uniforms[18])
     };
+    float overlayInverseAspect = 1.0 / max(aspect, 0.1);
+    float2 overlayOrbit = float2(uniforms[21] * overlayInverseAspect, uniforms[22]);
     LivableSurfaceParams overlayParams = {
         kOverlayScale,
-        float2(uniforms[13], uniforms[14]),
+        float2(uniforms[13], uniforms[14]) + overlayOrbit,
         float2(uniforms[19], uniforms[20])
     };
 

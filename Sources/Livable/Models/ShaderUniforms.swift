@@ -16,22 +16,24 @@ import Foundation
 ///
 /// - `[0..6)`   Three swirl centers (`float2` each) in UV space.
 /// - `[6..9)`   Three swirl rotation angles, in radians.
-/// - `[9..15)`  Three surface-pass offsets (`float2` each), ordered
-///   background, primary, overlay. The overlay offset already includes the
-///   primary wobble and the orbit term.
+/// - `[9..15)`  Three surface-pass wobble offsets (`float2` each), ordered
+///   background, primary, overlay. The overlay wobble includes the primary
+///   offset so it can orbit the primary layer.
 /// - `[15..21)` Three surface-pass rotation terms (`(cos, sin)` pairs),
 ///   ordered background, primary, overlay.
+/// - `[21..23)` The overlay orbit offset before shader-side aspect correction.
 enum ShaderUniforms {
     /// The number of `Float` elements the shader expects.
-    static let floatCount = 21
+    static let floatCount = 23
 
     /// Returns the packed uniform buffer for the supplied shader time.
     static func build(time: Float) -> [Float] {
         var values: [Float] = []
         values.reserveCapacity(floatCount)
         appendSwirl(into: &values, time: time)
-        appendSurfaceOffsets(into: &values, time: time)
+        let orbit = appendSurfaceOffsets(into: &values, time: time)
         appendSurfaceRotations(into: &values, time: time)
+        append(into: &values, vector: orbit)
         return values
     }
 
@@ -44,7 +46,7 @@ enum ShaderUniforms {
         for angle in SwirlConfiguration.angles { values.append(angle.value(time: time)) }
     }
 
-    private static func appendSurfaceOffsets(into values: inout [Float], time: Float) {
+    private static func appendSurfaceOffsets(into values: inout [Float], time: Float) -> SIMD2<Float> {
         let backgroundWobble = wobble(
             seed: SwirlPass.background.seed,
             time: SwirlPass.background.surfaceTime(time: time)
@@ -52,11 +54,12 @@ enum ShaderUniforms {
         let primaryWobble = wobble(seed: SwirlPass.primary.seed, time: SwirlPass.primary.surfaceTime(time: time))
         let overlayWobble = wobble(seed: SwirlPass.overlay.seed, time: SwirlPass.overlay.surfaceTime(time: time))
         let orbit = overlayOrbit(time: time)
-        let overlayOffset = primaryWobble + orbit + overlayWobble
+        let overlayOffset = primaryWobble + overlayWobble
 
         append(into: &values, vector: backgroundWobble)
         append(into: &values, vector: primaryWobble)
         append(into: &values, vector: overlayOffset)
+        return orbit
     }
 
     private static func appendSurfaceRotations(into values: inout [Float], time: Float) {
