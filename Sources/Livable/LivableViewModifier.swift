@@ -80,10 +80,12 @@ import SwiftUI
                     )
                 }
                 .blur(radius: blurRadius, opaque: true).mask { content }
+                .onAppear { reanchorAnimationPhase(at: context.date, nextSpeed: speed) }
                 .onChange(of: speed) { reanchorAnimationPhase(at: context.date, nextSpeed: $1) }
             }
         } else {
             content
+                .onChange(of: speed) { reanchorAnimationPhase(at: Date(), nextSpeed: $1) }
         }
     }
 }
