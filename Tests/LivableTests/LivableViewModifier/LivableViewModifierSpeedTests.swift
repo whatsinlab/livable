@@ -18,6 +18,30 @@ import Testing
     #expect(afterChange == beforeChange)
 }
 
+@Test func speedAdjustmentPreservesShaderUniformsAtChangeInstant() {
+    let start = Date(timeIntervalSinceReferenceDate: 0)
+    let changeDate = start.addingTimeInterval(8)
+
+    let beforeChangeTime = LivableViewModifier.shaderTime(
+        at: changeDate,
+        phaseAnchor: 0,
+        phaseAnchorDate: start,
+        speed: 1
+    )
+    let beforeChangeState = ShaderUniforms.build(time: beforeChangeTime)
+
+    let afterChangeTime = LivableViewModifier.shaderTime(
+        at: changeDate,
+        phaseAnchor: beforeChangeTime,
+        phaseAnchorDate: changeDate,
+        speed: 0.1
+    )
+    let afterChangeState = ShaderUniforms.build(time: afterChangeTime)
+
+    #expect(afterChangeTime == beforeChangeTime)
+    #expect(afterChangeState == beforeChangeState)
+}
+
 @Test func negativeSpeedFreezesAtCurrentShaderTime() {
     let start = Date(timeIntervalSinceReferenceDate: 0)
 

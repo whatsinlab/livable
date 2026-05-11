@@ -26,9 +26,9 @@ import SwiftUI
     ///     The default value is `true`.
     ///   - speed: The motion speed multiplier. The default value is `1`.
     ///   - blurRadius: The post-process blur radius, in points. The default value
-    ///     is `64`.
+    ///     is `32`.
     /// - Returns: A view with the Livable effect applied.
-    public func livable(isEnabled: Bool = true, speed: CGFloat = 1, blurRadius: CGFloat = 64) -> some View {
+    public func livable(isEnabled: Bool = true, speed: CGFloat = 1, blurRadius: CGFloat = 32) -> some View {
         modifier(LivableViewModifier(isEnabled: isEnabled, blurRadius: blurRadius, speed: speed))
     }
 }
