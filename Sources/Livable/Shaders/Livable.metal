@@ -155,46 +155,56 @@ static float livableFootprintAlpha(float2 uv) {
 
 // MARK: - Surface fields
 
-constant float2 kFieldSpaceFreqRange = float2(0.55, 1.40);
-constant float kFieldTimeRateMax = 0.34;
 constant float kFieldAmplitudeDecay = kGoldenFract;
+
+struct LivableDirectionalTerm {
+    float2 direction;
+    float2 normal;
+    float spaceFrequency;
+    float timeRate;
+    float phase;
+};
+
+constant LivableDirectionalTerm kSineFieldTerms[4] = {
+    { float2(-1.0, 0.0), float2(0.0, -1.0), 1.07532889, -0.17947378, 0.75 },
+    { float2(0.70710678, 0.70710678), float2(-0.70710678, 0.70710678), 0.95131556, -0.27868444, 0.375 },
+    { float2(0.70710678, -0.70710678), float2(0.70710678, 0.70710678), 0.82730223, 0.30210490, 0.5625 },
+    { float2(-0.38268343, 0.92387953), float2(-0.92387953, -0.38268343), 0.70328890, 0.20289424, 0.1875 },
+};
+
+constant LivableDirectionalTerm kFoldFieldTerms[3] = {
+    { float2(-0.95694034, -0.29028468), float2(0.29028468, -0.95694034), 0.79111563, 0.27315562, 0.796875 },
+    { float2(0.47139674, 0.88192126), float2(-0.88192126, 0.47139674), 0.66710230, 0.17394495, 0.421875 },
+    { float2(0.88192126, -0.47139674), float2(0.47139674, 0.88192126), 1.39308897, 0.07473429, 0.609375 },
+};
 
 static float2 livableDirectionalField(
     float2 uv,
     float time,
+    constant LivableDirectionalTerm *terms,
     int termCount,
-    int seed,
     float rectifyEdge
 ) {
     float2 sum = float2(0.0);
     float amplitude = 1.0;
     for (int i = 0; i < termCount; ++i) {
-        int k = seed + i;
-        float2 dir = lvUnitFromIndex(k * 3);
-        float2 normal = float2(-dir.y, dir.x);
-        float spaceFreq = lvLerp(
-            kFieldSpaceFreqRange.x,
-            kFieldSpaceFreqRange.y,
-            lvGolden(k * 3 + 1)
-        );
-        float timeRate = lvGoldenSigned(k * 3 + 2) * kFieldTimeRateMax;
-        float phase = lvHalton2(k * 3 + 2) * kTau;
-        float band = sin((dot(uv, dir) * spaceFreq + time * timeRate + phase) * kTau);
+        LivableDirectionalTerm term = terms[i];
+        float band = sin((dot(uv, term.direction) * term.spaceFrequency + time * term.timeRate + term.phase) * kTau);
         float contribution = (rectifyEdge >= 0.0)
             ? smoothstep(rectifyEdge, 1.0, band)
             : band;
-        sum += normal * contribution * amplitude;
+        sum += term.normal * contribution * amplitude;
         amplitude *= kFieldAmplitudeDecay;
     }
     return sum;
 }
 
 static float2 livableSineField(float2 uv, float time) {
-    return livableDirectionalField(uv, time, 4, 0, -1.0) * 0.34;
+    return livableDirectionalField(uv, time, kSineFieldTerms, 4, -1.0) * 0.34;
 }
 
 static float2 livableFoldField(float2 uv, float time) {
-    return livableDirectionalField(uv, time, 3, 16, 0.30) * 0.62;
+    return livableDirectionalField(uv, time, kFoldFieldTerms, 3, 0.30) * 0.62;
 }
 
 static float2 livableCurlField(float2 uv, float time) {
