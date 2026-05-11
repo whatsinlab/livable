@@ -17,6 +17,7 @@ constant float kGoldenFract = 0.6180339887498949;
 constant float kPlasticAlpha1 = 0.7548776662466927;
 constant float kPlasticAlpha2 = 0.5698402909980532;
 constant int kUniformFloatCount = 23;
+constant float2 kLuminanceWaveDirection = float2(-0.89322430, -0.44961133);
 
 // MARK: - Low-discrepancy generators
 
@@ -450,9 +451,7 @@ static float3 livableCompositeColor(
     color = mix(color, primaryColor, clamp(primaryAlpha, 0.0, 1.0));
     color = mix(color, overlayColor, clamp(overlayAlpha, 0.0, 1.0));
 
-    float lumAngle = lvHalton2(200) * kTau;
-    float2 lumDir = float2(cos(lumAngle), sin(lumAngle));
-    float luminanceWave = sin((dot(uv, lumDir) * 1.05 + time * 0.028) * kTau);
+    float luminanceWave = sin((dot(uv, kLuminanceWaveDirection) * 1.05 + time * 0.028) * kTau);
     color *= 1.0 + smoothstep(0.45, 1.0, luminanceWave) * 0.035;
     color = livableIncreaseSaturation(color, 1.25);
     return livableApplyContrast(color, 1.18);
