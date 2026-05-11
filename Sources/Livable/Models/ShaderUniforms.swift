@@ -81,22 +81,21 @@ enum ShaderUniforms {
     }
 
     private static func overlayOrbit(time: Float) -> SIMD2<Float> {
-        let rate: Float = 0.20
-        let secondaryStrength: Float = 0.45
-        let halfExtent = SIMD2<Float>(0.50, 0.50)
+        let rate = OverlayOrbit.rate
+        let secondaryStrength = OverlayOrbit.secondaryStrength
 
-        let ax = time * rate + Math.halton2(40) * .tau
-        let ay = time * rate * .goldenFract + Math.halton2(41) * .tau
+        let ax = time * rate + OverlayOrbit.primaryPhaseX
+        let ay = time * rate * .goldenFract + OverlayOrbit.primaryPhaseY
         let primary = SIMD2(cos(ax), sin(ay))
 
         let secondaryRate = rate * .goldenFract * .goldenFract
-        let sx = time * secondaryRate + Math.halton2(42) * .tau
-        let sy = time * secondaryRate * .goldenFract + Math.halton2(43) * .tau
+        let sx = time * secondaryRate + OverlayOrbit.secondaryPhaseX
+        let sy = time * secondaryRate * .goldenFract + OverlayOrbit.secondaryPhaseY
         let secondary = SIMD2(sin(sx), cos(sy))
 
         let norm: Float = 1.0 / (1.0 + secondaryStrength)
         let orbit = (primary + secondary * secondaryStrength) * norm
-        return orbit * halfExtent
+        return orbit * OverlayOrbit.halfExtent
     }
 
     private static func surfaceAngle(pass: SwirlPass, time: Float) -> Float {
@@ -110,4 +109,14 @@ enum ShaderUniforms {
         values.append(vector.x)
         values.append(vector.y)
     }
+}
+
+private enum OverlayOrbit {
+    static let rate: Float = 0.20
+    static let secondaryStrength: Float = 0.45
+    static let halfExtent = SIMD2<Float>(0.50, 0.50)
+    static let primaryPhaseX: Float = 0.578125 * .tau
+    static let primaryPhaseY: Float = 0.328125 * .tau
+    static let secondaryPhaseX: Float = 0.828125 * .tau
+    static let secondaryPhaseY: Float = 0.203125 * .tau
 }
