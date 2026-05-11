@@ -73,9 +73,10 @@ import SwiftUI
                     phaseAnchorDate: animationPhaseAnchorDate,
                     speed: animationPhaseSpeed
                 )
+                let uniforms = ShaderUniforms.build(time: shaderTime)
                 content.visualEffect { view, _ in
                     view.layerEffect(
-                        shader(.boundingRect, .float(shaderTime)),
+                        shader(.boundingRect, .float(shaderTime), .floatArray(uniforms)),
                         maxSampleOffset: maxSampleOffset
                     )
                 }
