@@ -16,6 +16,7 @@ constant float kTau = 6.28318530718;
 constant float kGoldenFract = 0.6180339887498949;
 constant float kPlasticAlpha1 = 0.7548776662466927;
 constant float kPlasticAlpha2 = 0.5698402909980532;
+constant int kUniformFloatCount = 21;
 
 // MARK: - Low-discrepancy generators
 
@@ -463,6 +464,10 @@ static float3 livableCompositeColor(
     device const float *uniforms,
     int uniformCount
 ) {
+    if (uniforms == nullptr || uniformCount < kUniformFloatCount) {
+        return half4(0.0);
+    }
+
     float2 viewOrigin = bounds.xy;
     float2 viewSize = max(bounds.zw, float2(1.0));
     // Clamp instead of early-returning transparent for subpixel-outside-bounds
