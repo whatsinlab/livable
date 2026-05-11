@@ -17,6 +17,10 @@ constant float kGoldenFract = 0.6180339887498949;
 constant float kPlasticAlpha1 = 0.7548776662466927;
 constant float kPlasticAlpha2 = 0.5698402909980532;
 constant int kUniformFloatCount = 23;
+
+/// The unit direction for the luminance wave.
+///
+/// This is precomputed from `lvHalton2(200) * kTau`.
 constant float2 kLuminanceWaveDirection = float2(-0.89322430, -0.44961133);
 
 // MARK: - Low-discrepancy generators
@@ -157,14 +161,31 @@ static float livableFootprintAlpha(float2 uv) {
 
 constant float kFieldAmplitudeDecay = kGoldenFract;
 
+/// A deterministic band term used by `livableDirectionalField`.
+///
+/// Each field value is precomputed from `lvUnitFromIndex`, `lvGolden`, and
+/// `lvHalton2` so each pixel only evaluates the active sine bands.
 struct LivableDirectionalTerm {
+    /// The unit vector used for the band projection.
     float2 direction;
+
+    /// The perpendicular unit vector that converts the band into a flow
+    /// contribution.
     float2 normal;
+
+    /// The spatial frequency applied to the projected UV coordinate.
     float spaceFrequency;
+
+    /// The time multiplier applied to the animated band phase.
     float timeRate;
+
+    /// The normalized Halton phase added before multiplying by `kTau`.
     float phase;
 };
 
+/// The terms for `livableSineField(uv, time)`.
+///
+/// These values are equivalent to seed `0` with four directional bands.
 constant LivableDirectionalTerm kSineFieldTerms[4] = {
     { float2(-1.0, 0.0), float2(0.0, -1.0), 1.07532889, -0.17947378, 0.75 },
     { float2(0.70710678, 0.70710678), float2(-0.70710678, 0.70710678), 0.95131556, -0.27868444, 0.375 },
@@ -172,6 +193,10 @@ constant LivableDirectionalTerm kSineFieldTerms[4] = {
     { float2(-0.38268343, 0.92387953), float2(-0.92387953, -0.38268343), 0.70328890, 0.20289424, 0.1875 },
 };
 
+/// The terms for `livableFoldField(uv, time)`.
+///
+/// These values are equivalent to seed `16` with three rectified directional
+/// bands.
 constant LivableDirectionalTerm kFoldFieldTerms[3] = {
     { float2(-0.95694034, -0.29028468), float2(0.29028468, -0.95694034), 0.79111563, 0.27315562, 0.796875 },
     { float2(0.47139674, 0.88192126), float2(-0.88192126, 0.47139674), 0.66710230, 0.17394495, 0.421875 },

@@ -111,12 +111,31 @@ enum ShaderUniforms {
     }
 }
 
+/// Constants for the overlay orbit path.
+///
+/// The phase values are the zero-based base-2 Halton entries that
+/// `overlayOrbit(time:)` used to calculate every frame:
+/// `Math.halton2(40...43) * .tau`.
 private enum OverlayOrbit {
+    /// The base angular speed for the primary orbit component.
     static let rate: Float = 0.20
+
+    /// The strength of the secondary orbit component relative to the primary component.
     static let secondaryStrength: Float = 0.45
+
+    /// The normalized half-width and half-height of the orbit before shader-side
+    /// aspect correction.
     static let halfExtent = SIMD2<Float>(0.50, 0.50)
+
+    /// The X-axis phase for the primary orbit component, from `Math.halton2(40) * .tau`.
     static let primaryPhaseX: Float = 0.578125 * .tau
+
+    /// The Y-axis phase for the primary orbit component, from `Math.halton2(41) * .tau`.
     static let primaryPhaseY: Float = 0.328125 * .tau
+
+    /// The X-axis phase for the secondary orbit component, from `Math.halton2(42) * .tau`.
     static let secondaryPhaseX: Float = 0.828125 * .tau
+
+    /// The Y-axis phase for the secondary orbit component, from `Math.halton2(43) * .tau`.
     static let secondaryPhaseY: Float = 0.203125 * .tau
 }
